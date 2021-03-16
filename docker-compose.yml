@@ -21,27 +21,11 @@ services:
     depends_on:
       - db
   proxy:
-    image: neuralegion/brokencrystals-client
+    image: neuralegion/brokencrystals-proxy-http
     restart: always
-    environment:
-      CERTBOT_EMAIL: "anatol@neuralegion.com"
     ports:
-      - "80:80"
-      - "443:443"
+      - "8000:80"
     depends_on:
       - nodejs
     volumes:
-      - ./nginx-config:/etc/nginx/user.conf.d:ro
-      - letsencrypt:/etc/letsencrypt
-  watchtower:
-    image: containrrr/watchtower
-    restart: always
-    logging:
-      options:
-        max-file: "5"
-        max-size: "10m"
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-    command: --interval 300 --debug
-volumes:
-  letsencrypt:
+      - ./nginx-config/default.conf:/etc/nginx/conf.d/default.conf:ro
