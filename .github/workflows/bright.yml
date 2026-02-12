@@ -50,6 +50,9 @@ jobs:
           BRIGHT_HOSTNAME: app.brightsec.com
           BRIGHT_PROJECT_ID: qpuGABz6fNCMrpjtMiLjfq
           BRIGHT_TOKEN: ${{ secrets.BRIGHT_TOKEN }}
+          bright_client_id: ${{ secrets.BRIGHT_CLIENT_ID }}
+          bright_client_secret: ${{ secrets.BRIGHT_CLIENT_SECRET }}
+          bright_audience: ${{ vars.BRIGHT_AUDIENCE }}
 
       - name: Run security tests
         env:
