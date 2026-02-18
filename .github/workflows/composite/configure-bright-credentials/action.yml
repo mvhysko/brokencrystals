@@ -1,0 +1,43 @@
+name: 'Configure Bright Credentials'
+description: 'Authenticate with BrightSec using OIDC and export BRIGHT_TOKEN.'
+inputs:
+  BRIGHT_HOSTNAME:
+    description: 'BrightSec API hostname'
+    required: true
+  BRIGHT_PROJECT_ID:
+    description: 'BrightSec Project ID'
+    required: true
+outputs:
+  BRIGHT_TOKEN:
+    description: 'BrightSec API token'
+runs:
+  using: 'composite'
+  steps:
+    - name: Generate OIDC Token
+      id: generate_oidc_token
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const idToken = await core.getIDToken();
+          core.setOutput('id_token', idToken);
+    - name: Retrieve OIDC Token
+      id: oidc
+      shell: bash
+      run: |
+        echo "token=${{ steps.generate_oidc_token.outputs.id_token }}" >> $GITHUB_OUTPUT
+    - name: Exchange OIDC Token for BrightSec API Key
+      id: exchange
+      shell: bash
+      env:
+        BRIGHT_HOSTNAME: ${{ inputs.BRIGHT_HOSTNAME }}
+        BRIGHT_PROJECT_ID: ${{ inputs.BRIGHT_PROJECT_ID }}
+        OIDC_TOKEN: ${{ steps.oidc.outputs.token }}
+      run: |
+        BRIGHT_TOKEN=$(curl -s -X POST "https://${BRIGHT_HOSTNAME}/api/v1/oidc/token" \
+          -H "Content-Type: application/json" \
+          -d "$(jq -nc --arg projectId \"$BRIGHT_PROJECT_ID\" --arg oidcToken \"$OIDC_TOKEN\" '{projectId: $projectId, oidcToken: $oidcToken}')" | jq -r '.token')
+        if [ -z "$BRIGHT_TOKEN" ] || [ "$BRIGHT_TOKEN" = "null" ]; then
+          echo "Failed to retrieve BrightSec API token" >&2
+          exit 1
+        fi
+        echo "BRIGHT_TOKEN=$BRIGHT_TOKEN" >> $GITHUB_ENV
