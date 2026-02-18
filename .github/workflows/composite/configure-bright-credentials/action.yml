@@ -33,11 +33,16 @@ runs:
         BRIGHT_PROJECT_ID: ${{ inputs.BRIGHT_PROJECT_ID }}
         OIDC_TOKEN: ${{ steps.oidc.outputs.token }}
       run: |
-        BRIGHT_TOKEN=$(curl -s -X POST "https://${BRIGHT_HOSTNAME}/api/v1/oidc/token" \
+        RESPONSE=$(curl -s -X POST "https://${BRIGHT_HOSTNAME}/api/v1/oidc/token" \
           -H "Content-Type: application/json" \
-          -d "$(jq -nc --arg projectId \"$BRIGHT_PROJECT_ID\" --arg oidcToken \"$OIDC_TOKEN\" '{projectId: $projectId, oidcToken: $oidcToken}')" | jq -r '.token')
+          -d "$(jq -nc --arg projectId \"$BRIGHT_PROJECT_ID\" --arg oidcToken \"$OIDC_TOKEN\" '{projectId: $projectId, oidcToken: $oidcToken}')")
+        if ! echo "$RESPONSE" | jq . >/dev/null 2>&1; then
+          echo "BrightSec API did not return valid JSON: $RESPONSE" >&2
+          exit 1
+        fi
+        BRIGHT_TOKEN=$(echo "$RESPONSE" | jq -r '.token')
         if [ -z "$BRIGHT_TOKEN" ] || [ "$BRIGHT_TOKEN" = "null" ]; then
-          echo "Failed to retrieve BrightSec API token" >&2
+          echo "Failed to retrieve BrightSec API token. Response: $RESPONSE" >&2
           exit 1
         fi
         echo "BRIGHT_TOKEN=$BRIGHT_TOKEN" >> $GITHUB_ENV
