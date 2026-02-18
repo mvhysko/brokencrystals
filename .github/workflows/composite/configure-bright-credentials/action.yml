@@ -1,47 +1,36 @@
 name: 'Configure Bright Credentials'
-description: 'Authenticate with BrightSec using OIDC and export BRIGHT_TOKEN.'
-inputs:
-  BRIGHT_HOSTNAME:
-    description: 'BrightSec API hostname'
-    required: true
-  BRIGHT_PROJECT_ID:
-    description: 'BrightSec Project ID'
-    required: true
-outputs:
-  BRIGHT_TOKEN:
-    description: 'BrightSec API token'
+description: 'Obtain OIDC token and exchange for BrightSec API token.'
 runs:
   using: 'composite'
   steps:
-    - name: Generate OIDC Token
-      id: generate_oidc_token
-      uses: actions/github-script@v7
+    - name: Get OIDC Token
+      id: oidc-token
+      uses: actions/github-script@v6
       with:
         script: |
-          const idToken = await core.getIDToken('api://app.brightsec.com');
-          core.setOutput('id_token', idToken);
-    - name: Retrieve OIDC Token
-      id: oidc
+          const token = await core.getIDToken();
+          core.setOutput('oidc_token', token);
+
+    - name: Exchange OIDC Token for BrightSec API Token
+      id: bright-auth
       shell: bash
       run: |
-        echo "token=${{ steps.generate_oidc_token.outputs.id_token }}" >> $GITHUB_OUTPUT
-    - name: Exchange OIDC Token for BrightSec API Key
-      id: exchange
-      shell: bash
-      env:
-        BRIGHT_HOSTNAME: ${{ inputs.BRIGHT_HOSTNAME }}
-        BRIGHT_PROJECT_ID: ${{ inputs.BRIGHT_PROJECT_ID }}
-        OIDC_TOKEN: ${{ steps.oidc.outputs.token }}
-      run: |
-        if [ -z "$OIDC_TOKEN" ]; then
-          echo "OIDC token is empty. Check OIDC permissions and audience." >&2
+        if [ -z "${{ steps.oidc-token.outputs.oidc_token }}" ]; then
+          echo "OIDC token is empty" >&2
           exit 1
         fi
-        BRIGHT_TOKEN=$(curl -s -X POST "https://${BRIGHT_HOSTNAME}/api/v1/oidc/token" \
+        response=$(curl -s -X POST "https://auth.brightsec.com/oidc/token" \
           -H "Content-Type: application/json" \
-          -d "$(jq -nc --arg projectId \"$BRIGHT_PROJECT_ID\" --arg oidcToken \"$OIDC_TOKEN\" '{projectId: $projectId, oidcToken: $oidcToken}')" | jq -r '.token')
-        if [ -z "$BRIGHT_TOKEN" ] || [ "$BRIGHT_TOKEN" = "null" ]; then
-          echo "Failed to retrieve BrightSec API token" >&2
+          -d '{"token": "${{ steps.oidc-token.outputs.oidc_token }}"}')
+        echo "$response" | jq .
+        api_token=$(echo "$response" | jq -r '.access_token')
+        if [ "$api_token" == "null" ] || [ -z "$api_token" ]; then
+          echo "Failed to obtain BrightSec API token" >&2
           exit 1
         fi
-        echo "BRIGHT_TOKEN=$BRIGHT_TOKEN" >> $GITHUB_ENV
+        echo "::add-mask::$api_token"
+        echo "api_token=$api_token" >> $GITHUB_OUTPUT
+outputs:
+  api_token:
+    description: 'BrightSec API token'
+    value: ${{ steps.bright-auth.outputs.api_token }}
