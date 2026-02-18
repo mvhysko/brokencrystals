@@ -13,11 +13,18 @@ outputs:
 runs:
   using: 'composite'
   steps:
+    - name: Generate OIDC Token
+      id: generate_oidc_token
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const idToken = await core.getIDToken();
+          core.setOutput('id_token', idToken);
     - name: Retrieve OIDC Token
       id: oidc
       shell: bash
       run: |
-        echo "token=$(curl -s -H \"Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN\" \"$ACTIONS_ID_TOKEN_REQUEST_URL\")" >> $GITHUB_OUTPUT
+        echo "token=${{ steps.generate_oidc_token.outputs.id_token }}" >> $GITHUB_OUTPUT
     - name: Exchange OIDC Token for BrightSec API Key
       id: exchange
       shell: bash
