@@ -35,7 +35,7 @@ runs:
       run: |
         BRIGHT_TOKEN=$(curl -s -X POST "https://${BRIGHT_HOSTNAME}/api/v1/oidc/token" \
           -H "Content-Type: application/json" \
-          -d '{"projectId": "'${BRIGHT_PROJECT_ID}'", "oidcToken": "'${OIDC_TOKEN}'"}' | jq -r '.token')
+          -d "$(jq -nc --arg projectId \"$BRIGHT_PROJECT_ID\" --arg oidcToken \"$OIDC_TOKEN\" '{projectId: $projectId, oidcToken: $oidcToken}')" | jq -r '.token')
         if [ -z "$BRIGHT_TOKEN" ] || [ "$BRIGHT_TOKEN" = "null" ]; then
           echo "Failed to retrieve BrightSec API token" >&2
           exit 1
