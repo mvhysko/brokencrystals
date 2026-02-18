@@ -17,6 +17,13 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Check DockerHub username
+        run: |
+          if [ -z "${{ vars.DOCKERHUB_BRIGHT_USER }}" ]; then
+            echo "DOCKERHUB_BRIGHT_USER is not set. Please configure it in repository or organization variables." >&2
+            exit 1
+          fi
+
       - name: Login to DockerHub
         run: |
           docker login --username=${{ vars.DOCKERHUB_BRIGHT_USER }} --password=${{ secrets.DOCKERHUB_BRIGHT_TOKEN }}
