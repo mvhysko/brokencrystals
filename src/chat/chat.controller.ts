@@ -28,9 +28,9 @@ export class ChatController {
   async query(@Body() messages: ChatMessage[]): Promise<string> {
     try {
       return await this.chatService.query(messages);
-    } catch (err) {
+    } catch (er) {
       throw new HttpException(
-        `Chat API response error: ${err}`,
+        `Chat API response error: ${er}`,
         HttpStatus.INTERNAL_SERVER_ERROR
       );
     }
