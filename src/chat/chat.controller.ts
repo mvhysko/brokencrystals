@@ -30,7 +30,7 @@ export class ChatController {
       return await this.chatService.query(messages);
     } catch (err) {
       throw new HttpException(
-        `Chat API response err: ${err}`,
+        `Chat API response error: ${err}`,
         HttpStatus.INTERNAL_SERVER_ERROR
       );
     }
