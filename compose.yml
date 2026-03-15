@@ -33,8 +33,6 @@ services:
       CHAT_API_MODEL: smollm:135m
       CHAT_API_TOKEN: ''
       CHAT_API_MAX_TOKENS: 200
-    ports:
-      - '3000:3000'
     deploy:
       restart_policy:
         condition: on-failure
