@@ -35,7 +35,7 @@ jobs:
 
       - name: Probe application readiness
         run: |
-          i=1; while [ "$i" -le 30 ]; do curl -sS -o /dev/null http://127.0.0.1:0 && exit 0; sleep 5; i=$((i + 1)); done; exit 1
+          i=1; while [ "$i" -le 30 ]; do curl -sS -o /dev/null http://127.0.0.1:3000 && exit 0; sleep 5; i=$((i + 1)); done; exit 1
 
       - name: Setup Node.js 22.x
         uses: actions/setup-node@v4
@@ -60,7 +60,7 @@ jobs:
           BRIGHT_AUTH_ID: ${{ vars.BRIGHT_AUTH_ID }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           BRIGHT_TOKEN: ${{ env.BRIGHT_TOKEN }}
-          BRIGHT_TARGET_URL: http://127.0.0.1:0
+          BRIGHT_TARGET_URL: http://127.0.0.1:3000
           SECTESTER_SCAN_POOL_SIZE: ${{ vars.SECTESTER_SCAN_POOL_SIZE }}
         run: |
           node --experimental-transform-types --experimental-strip-types --experimental-detect-module --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --disable-warning=ExperimentalWarning --test-force-exit --test-concurrency=4 --test .brightsec/tests/*.test.ts
