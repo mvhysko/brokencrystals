@@ -23,7 +23,7 @@ runs:
             exit 1
           fi
           SANITIZED_URL=$(echo "$ACTIONS_ID_TOKEN_REQUEST_URL" | sed -E 's#([^:])/+#\1/#g')
-          export OIDC_TOKEN=$(curl -sSL -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" "$SANITIZED_URL" | jq -r .value)
+          export OIDC_TOKEN=$(curl -sSL -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" "$SANITIZED_URL" | jq -r .id_token)
           if [ -z "$OIDC_TOKEN" ] || [ "$OIDC_TOKEN" = "null" ]; then
             echo "Failed to retrieve OIDC token." >&2
             exit 1
