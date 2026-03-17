@@ -1,0 +1,47 @@
+name: 'Configure Bright Credentials'
+description: 'Authenticate with BrightSec using OIDC or provided token and export BRIGHT_TOKEN.'
+runs:
+  using: 'composite'
+  steps:
+    - name: 'Authenticate with BrightSec'
+      shell: bash
+      env:
+        BRIGHT_HOSTNAME: ${{ inputs.BRIGHT_HOSTNAME }}
+        BRIGHT_PROJECT_ID: ${{ inputs.BRIGHT_PROJECT_ID }}
+        BRIGHT_TOKEN: ${{ inputs.BRIGHT_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        if [ -n "$BRIGHT_TOKEN" ]; then
+          echo "Using provided BRIGHT_TOKEN."
+          echo "BRIGHT_TOKEN=$BRIGHT_TOKEN" >> $GITHUB_ENV
+        else
+          echo "No BRIGHT_TOKEN provided, attempting OIDC authentication."
+          if [ -z "$BRIGHT_PROJECT_ID" ] || [ -z "$BRIGHT_HOSTNAME" ]; then
+            echo "BRIGHT_PROJECT_ID and BRIGHT_HOSTNAME must be set for OIDC authentication." >&2
+            exit 1
+          fi
+          export OIDC_TOKEN=$(curl -sSL -H "Authorization: bearer $GITHUB_TOKEN" "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}/oidc/token" | jq -r .value)
+          if [ -z "$OIDC_TOKEN" ] || [ "$OIDC_TOKEN" = "null" ]; then
+            echo "Failed to retrieve OIDC token." >&2
+            exit 1
+          fi
+          BRIGHT_RESPONSE=$(curl -sSL -X POST "https://$BRIGHT_HOSTNAME/api/v1/auth/oidc/token" \
+            -H "Content-Type: application/json" \
+            -d '{"projectId": "'$BRIGHT_PROJECT_ID'", "token": "'$OIDC_TOKEN'"}')
+          BRIGHT_TOKEN=$(echo "$BRIGHT_RESPONSE" | jq -r .token)
+          if [ -z "$BRIGHT_TOKEN" ] || [ "$BRIGHT_TOKEN" = "null" ]; then
+            echo "Failed to authenticate with BrightSec: $BRIGHT_RESPONSE" >&2
+            exit 1
+          fi
+          echo "BRIGHT_TOKEN=$BRIGHT_TOKEN" >> $GITHUB_ENV
+        fi
+inputs:
+  BRIGHT_HOSTNAME:
+    description: 'BrightSec hostname'
+    required: true
+  BRIGHT_PROJECT_ID:
+    description: 'BrightSec project ID'
+    required: true
+  BRIGHT_TOKEN:
+    description: 'BrightSec API token (optional, will use OIDC if not provided)'
+    required: false
