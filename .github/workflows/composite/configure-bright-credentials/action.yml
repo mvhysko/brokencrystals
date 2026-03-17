@@ -10,6 +10,8 @@ runs:
         BRIGHT_PROJECT_ID: ${{ inputs.BRIGHT_PROJECT_ID }}
         BRIGHT_TOKEN: ${{ inputs.BRIGHT_TOKEN }}
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        ACTIONS_ID_TOKEN_REQUEST_TOKEN: ${{ env.ACTIONS_ID_TOKEN_REQUEST_TOKEN }}
+        ACTIONS_ID_TOKEN_REQUEST_URL: ${{ env.ACTIONS_ID_TOKEN_REQUEST_URL }}
       run: |
         if [ -n "$BRIGHT_TOKEN" ]; then
           echo "Using provided BRIGHT_TOKEN."
