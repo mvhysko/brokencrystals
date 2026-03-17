@@ -45,11 +45,12 @@ jobs:
 
       - name: Get OIDC Token
         id: oidc-token
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const token = await github.rest.actions.getOIDCToken();
-            core.setOutput('id_token', token.data.value);
+        run: |
+          OIDC_TOKEN=$(curl -sSL -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" "$ACTIONS_ID_TOKEN_REQUEST_URL" | jq -r .id_token)
+          echo "id_token=$OIDC_TOKEN" >> $GITHUB_OUTPUT
+        env:
+          ACTIONS_ID_TOKEN_REQUEST_TOKEN: ${{ env.ACTIONS_ID_TOKEN_REQUEST_TOKEN }}
+          ACTIONS_ID_TOKEN_REQUEST_URL: ${{ env.ACTIONS_ID_TOKEN_REQUEST_URL }}
 
       - name: Authenticate with Bright
         env:
