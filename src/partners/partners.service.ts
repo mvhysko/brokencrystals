@@ -1,87 +1,77 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { DOMParser } from '@xmldom/xmldom';
-import xpath, { SelectReturnType } from 'xpath';
+import * as xpath from 'xpath';
+import { DOMParser } from 'xmldom';
 
 @Injectable()
 export class PartnersService {
   private readonly logger = new Logger(PartnersService.name);
 
-  private readonly XML_HEADER = '<?xml version="1.0" encoding="UTF-8"?>';
-  private readonly XML_AUTHORS_STR: string = `${this.XML_HEADER}
-    <partners>
-      <partner>
-        <name>Walter White</name>
-        <age>50</age>
-        <profession>Chemistry Teacher</profession>
-        <residency country="US" state="New Mexico" city="Albuquerque" />
-        <username>walter100</username>
-        <password>Heisenberg123</password>
-        <wealth>15M USD</wealth>
-      </partner>
-
-      <partner>
-        <name>Jesse Pinkman</name>
-        <age>25</age>
-        <profession>Professional Product Distributer</profession>
-        <residency country="US" state="New Mexico" city="Yo Moma" />
-        <username>dapinkman69</username>
-        <password>Yoyo1!</password>
-        <wealth>5M USD</wealth>
-      </partner>
-
-      <partner>
-        <name>Michael Ehrmantraut</name>
-        <age>65</age>
-        <profession>Personal Security Agent</profession>
-        <residency country="US" state="New Mexico" city="Albuquerque" />
-        <username>_safetyman_</username>
-        <password>LittleKid777</password>
-        <wealth>50M USD</wealth>
-      </partner>
-
-      <partner>
-        <name>Gus Fring</name>
-        <age>52</age>
-        <profession>Restaurant Chain Owner</profession>
-        <residency country="US" state="New Mexico" city="Albuquerque" />
-        <username>ChickMan</username>
-        <password>GoodChicken4U</password>
-        <wealth>Too much USD</wealth>
-      </partner>
-    </partners>
-  `;
-
-  private getPartnersXMLObj(): Node {
-    const partnersXMLObj = new DOMParser().parseFromString(
-      this.XML_AUTHORS_STR,
-      'text/xml'
-    );
-    return partnersXMLObj as unknown as Node;
-  }
-
-  private selectPartnerPropertiesByXPATH(
-    xpathExpression: string
-  ): SelectReturnType {
-    const partnersXMLObj = this.getPartnersXMLObj();
-    return xpath.select(xpathExpression, partnersXMLObj);
-  }
-
-  private getFormattedXMLOutput(xmlNodes): string {
-    return `${this.XML_HEADER}\n<root>\n${xmlNodes.join('\n')}\n</root>`;
-  }
+  private xmlData: string = `<?xml version="1.0" encoding="UTF-8"?>
+  <partners>
+    <partner>
+      <name>Walter White</name>
+      <username>walter100</username>
+      <password>Heisenberg123</password>
+      <wealth>15M USD</wealth>
+    </partner>
+    <partner>
+      <name>Jesse Pinkman</name>
+      <username>dapinkman69</username>
+      <password>Yoyo1!</password>
+      <wealth>5M USD</wealth>
+    </partner>
+    <partner>
+      <name>Michael Ehrmantraut</name>
+      <username>_safetyman_</username>
+      <password>LittleKid777</password>
+      <wealth>50M USD</wealth>
+    </partner>
+    <partner>
+      <name>Gus Fring</name>
+      <username>ChickMan</username>
+      <password>GoodChicken4U</password>
+      <wealth>Too much USD</wealth>
+    </partner>
+  </partners>`;
 
   getPartnersProperties(xpathExpression: string): string {
-    let xmlNodes = this.selectPartnerPropertiesByXPATH(xpathExpression);
+    this.logger.debug(`Evaluating XPath expression: ${xpathExpression}`);
 
-    if (!Array.isArray(xmlNodes)) {
-      this.logger.debug(
-        `xmlNodes's type wasn't 'Array', and it's value was: ${xmlNodes}`
-      );
-      xmlNodes = [];
-    } else {
-      this.logger.debug(`Raw xpath xmlNodes value is: ${xmlNodes}`);
+    try {
+      const doc = new DOMParser().parseFromString(this.xmlData);
+      const select = xpath.useNamespaces({
+        '': 'http://www.w3.org/1999/xhtml'
+      });
+
+      // Validate and sanitize the XPath expression
+      if (!this.isValidXPath(xpathExpression)) {
+        throw new Error('Invalid XPath expression');
+      }
+
+      const nodes = select(xpathExpression, doc);
+      let result = '';
+
+      for (let i = 0; i < nodes.length; i++) {
+        result += nodes[i].toString();
+      }
+
+      return result;
+    } catch (err) {
+      this.logger.error(`Error evaluating XPath: ${err.message}`);
+      throw new Error('Failed to evaluate XPath expression');
     }
+  }
 
-    return this.getFormattedXMLOutput(xmlNodes);
+  private isValidXPath(xpathExpression: string): boolean {
+    // Basic validation to prevent XPath injection
+    const forbiddenPatterns = [
+      /\|/, // Disallow union operator
+      /\//, // Disallow direct child or descendant selectors
+      /\[.*\]/, // Disallow predicates
+      /\(/, // Disallow function calls
+      /@/ // Disallow attribute selectors
+    ];
+
+    return !forbiddenPatterns.some((pattern) => pattern.test(xpathExpression));
   }
 }
