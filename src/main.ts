@@ -4,7 +4,7 @@ import { HeadersConfiguratorInterceptor } from './components/headers.configurato
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import fastifyCookie from '@fastify/cookie';
 import fastifyHttpProxy from '@fastify/http-proxy';
-session from '@fastify/session';
+import session from '@fastify/session';
 import { GlobalExceptionFilter } from './components/global-exception.filter';
 import * as os from 'os';
 import { readFileSync, readFile, readdirSync } from 'fs';
