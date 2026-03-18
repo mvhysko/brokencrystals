@@ -4,7 +4,7 @@ import { HeadersConfiguratorInterceptor } from './components/headers.configurato
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import fastifyCookie from '@fastify/cookie';
 import fastifyHttpProxy from '@fastify/http-proxy';
-import session from '@fastify/session';
+session from '@fastify/session';
 import { GlobalExceptionFilter } from './components/global-exception.filter';
 import * as os from 'os';
 import { readFileSync, readFile, readdirSync } from 'fs';
@@ -95,6 +95,18 @@ async function bootstrap() {
             )
           }
         : null
+  });
+
+  server.get('/api/config', (req, res) => {
+    res.statusCode = 200;
+    res.setHeader('Content-Type', 'application/json');
+    res.end(JSON.stringify({
+      URL: process.env.URL,
+      GRPC_WEB_PROXY_URL: process.env.GRPC_WEB_PROXY_URL,
+      CHAT_API_URL: process.env.CHAT_API_URL,
+      CHAT_API_MODEL: process.env.CHAT_API_MODEL,
+      CHAT_API_MAX_TOKENS: process.env.CHAT_API_MAX_TOKENS
+    }));
   });
 
   server.setDefaultRoute((req, res) => {
