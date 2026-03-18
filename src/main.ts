@@ -4,7 +4,7 @@ import { HeadersConfiguratorInterceptor } from './components/headers.configurato
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import fastifyCookie from '@fastify/cookie';
 import fastifyHttpProxy from '@fastify/http-proxy';
-import session from '@fastify/session';
+session from '@fastify/session';
 import { GlobalExceptionFilter } from './components/global-exception.filter';
 import * as os from 'os';
 import { readFileSync, readFile, readdirSync } from 'fs';
@@ -95,6 +95,15 @@ async function bootstrap() {
             )
           }
         : null
+  });
+
+  // Add explicit handler for /api/config before default route
+  server.get('/api/config', async (req, res) => {
+    res.send({
+      NODE_ENV: process.env.NODE_ENV,
+      URL: process.env.URL,
+      GRPC_WEB_PROXY_URL: process.env.GRPC_WEB_PROXY_URL
+    });
   });
 
   server.setDefaultRoute((req, res) => {
