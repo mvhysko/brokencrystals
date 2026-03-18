@@ -81,7 +81,7 @@ export class EmailController {
     }
     // Remove the inital '&'
     rawQuery = `?${rawQuery.substring(1)}`;
-    this.logger.debug(`Raw q: ${rawQuery}`);
+    this.logger.debug(`Raw query ${rawQuery}`);
 
     // "Use" the status code
     const uriParams = splitUriIntoParamsPPVulnerable(rawQuery);
