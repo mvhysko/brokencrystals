@@ -139,7 +139,7 @@ export class PartnersController {
           : errStr;
 
       throw new HttpException(
-        `Couldn't find partners. ${errorMessage}`,
+        `Could not find partners. ${errorMessage}`,
         HttpStatus.INTERNAL_SERVER_ERROR
       );
     }
