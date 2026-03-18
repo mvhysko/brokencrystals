@@ -133,8 +133,7 @@ export class PartnersController {
     this.logger.debug(`Searching partner names by the keyword "${keyword}"`);
 
     try {
-      // Validate the keyword to prevent injection
-      if (!this.isValidXpath(keyword)) {
+      if (!this.isValidpath(keyword)) {
         throw new Error('Invalid search keyword');
       }
       const xpath = `//partners/partner/name[contains(., '${keyword}')]`;
@@ -154,9 +153,7 @@ export class PartnersController {
     }
   }
 
-  private isValidXpath(xpath: string): boolean {
-    // Implement a basic validation for XPath expressions
-    // This is a placeholder for more complex validation logic
+  private isValidpath(xpath: string): boolean {
     return !xpath.includes("'") && !xpath.includes('"');
   }
 }
