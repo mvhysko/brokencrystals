@@ -63,9 +63,7 @@ export class PartnersService {
     xpathExpression: string
   ): SelectReturnType {
     const partnersXMLObj = this.getPartnersXMLObj();
-    // Sanitize the input to prevent XPATH Injection
-    const sanitizedXpathExpression = this.sanitizeXpath(xpathExpression);
-    return xpath.select(sanitizedXpathExpression, partnersXMLObj);
+    return xpath.select(xpathExpression, partnersXMLObj);
   }
 
   private getFormattedXMLOutput(xmlNodes): string {
@@ -87,8 +85,19 @@ export class PartnersService {
     return this.getFormattedXMLOutput(xmlNodes);
   }
 
-  private sanitizeXpath(xpathExpression: string): string {
-    // Basic sanitization logic to escape single quotes
-    return xpathExpression.replace(/'/g, "\'");
+  getPartnersPropertiesWithParams(xpathExpression: string, params: { [key: string]: string }): string {
+    const partnersXMLObj = this.getPartnersXMLObj();
+    const context = { ...params };
+    const xmlNodes = xpath.selectWithParams(xpathExpression, partnersXMLObj, context);
+
+    if (!Array.isArray(xmlNodes)) {
+      this.logger.debug(
+        `xmlNodes's type wasn't 'Array', and it's value was: ${xmlNodes}`
+      );
+      return this.getFormattedXMLOutput([]);
+    }
+
+    this.logger.debug(`Raw xpath xmlNodes value is: ${xmlNodes}`);
+    return this.getFormattedXMLOutput(xmlNodes);
   }
 }
