@@ -4,6 +4,8 @@
 
 FROM node:18-alpine AS build
 
+RUN apk add --no-cache wget
+
 WORKDIR /usr/src/app
 
 # Copy and build NestJS server project
@@ -42,6 +44,8 @@ USER node
 ###################
 
 FROM node:18-alpine AS production
+
+RUN apk add --no-cache wget
 
 WORKDIR /usr/src/app
 
