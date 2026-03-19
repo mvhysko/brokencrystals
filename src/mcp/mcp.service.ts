@@ -214,6 +214,7 @@ export class McpService {
 
       // Vulnerable: SSTI - User-controlled template string is directly compiled
       // Default template if not provided
+      // Fix: Use a safe template rendering approach
       const template =
         input.template ||
         `The sum of [{{=it.numbers.join(', ')}}] is: {{=it.sum}}`;
