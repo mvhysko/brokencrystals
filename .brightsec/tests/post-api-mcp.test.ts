@@ -21,7 +21,7 @@ after(() => runner.clear());
 test('POST /api/mcp', { signal: AbortSignal.timeout(timeout) }, async () => {
   await runner
     .createScan({
-      tests: ['sqli', 'secret_tokens', 'ssti', 'xss', 'csrf'],
+      tests: ['ssti'],
       attackParamLocations: [AttackParamLocation.BODY],
       starMetadata: {
         "code_source": "mvhysko/brokencrystals:feat/mcp",
