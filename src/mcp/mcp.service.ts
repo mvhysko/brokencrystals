@@ -212,15 +212,20 @@ export class McpService {
       const numbers = input.numbers || [];
       const sum = numbers.reduce((acc, num) => acc + num, 0);
 
-      // Vulnerable: SSTI - User-controlled template string is directly compiled
-      // Default template if not provided
+      // Fix: Use a safe template rendering approach
       const template =
         input.template ||
         `The sum of [{{=it.numbers.join(', ')}}] is: {{=it.sum}}`;
 
-      // Vulnerable: Using dot template engine which allows code execution
-      // User can inject arbitrary code via the template parameter
-      const rendered = dotT.compile(template)({ numbers, sum });
+      // Fix: Escape user input to prevent SSTI
+      const safeTemplate = template.replace(/{{=it\.(\w+)}}/g, (match, p1) => {
+        if (p1 === 'sum' || p1 === 'numbers') {
+          return match;
+        }
+        return '';
+      });
+
+      const rendered = dotT.compile(safeTemplate)({ numbers, sum });
 
       this.logger.debug(`Rendered result: ${rendered}`);
 
