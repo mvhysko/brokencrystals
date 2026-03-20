@@ -102,7 +102,7 @@ export class EmailController {
       responseJson.message = `Email sent to "${name} <${to}>" successfully`;
       res.status(HttpStatus.OK);
     } else {
-      responseJson.message = `Failed sending a support email. Or your exploit just ain't cutting it... Level up.`;
+      responseJson.message = `Failed sending email. Or your exploit just ain't cutting it... Level up.`;
       res.status(HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
