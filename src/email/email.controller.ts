@@ -99,7 +99,7 @@ export class EmailController {
     );
 
     if (didSucceed) {
-      responseJson.message = `Email sent to "${name} <${to}>" successfuly`;
+      responseJson.message = `Email sent to "${name} <${to}>" successfully`;
       res.status(HttpStatus.OK);
     } else {
       responseJson.message = `Failed sending a support email. Or your exploit just ain't cutting it... Level up.`;
