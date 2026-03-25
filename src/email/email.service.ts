@@ -27,7 +27,7 @@ export class EmailService {
     subject: string,
     body: string
   ): Promise<boolean> {
-    this.logger.debug(`Sending mail from "${from}" to "${to}"`);
+    this.logger.debug(`Send mail from "${from}" to "${to}"`);
     this.logger.debug(
       `Mail subject is (trimmed): "${subject.substring(0, 64)}"`
     );
